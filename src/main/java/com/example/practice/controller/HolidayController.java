@@ -12,8 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-@Controller
+@RestController
 public class HolidayController {
 
     @Autowired
@@ -22,7 +23,7 @@ public class HolidayController {
     @Autowired
     VisitorRepository visitorRepository;
 
-    public void setup() {
+    public void setUp() {
         Visitor visitor1 = new Visitor(1, "Amy","Zhang");
         visitorRepository.save(visitor1);
         Visitor visitor2 = new Visitor(2, "Emma","Rela");
@@ -54,27 +55,17 @@ public class HolidayController {
     }
 
     @GetMapping("/HolidayHistory")
-    public String findAllFromHistory( Model model) {
-        setup();
+    public Iterable<HolidayHistory> findAllFromHistory() {
+        setUp();
         Iterable<HolidayHistory> h1 = holidayRepository.findAll();
-        model.addAttribute("test",h1);
-        return "Display";
+        return h1;
     }
 
-//    @GetMapping("/HolidayHistory/{historyId}")
-//    public String findFromHistory(@PathVariable Integer historyId, Model model) {
-//        setup();
-//        Optional<HolidayHistory> h1 = holidayRepository.findById(historyId);
-//        model.addAttribute("test",h1.get());
-//        return "Display";
-//    }
-
     @PostMapping("/HolidayHistory")
-    public String saveIntoHistory(@Valid @RequestBody HolidayHistory holidayHistory, Model model) {
-        setup();
+    public Iterable<HolidayHistory> saveIntoHistory(@Valid @RequestBody HolidayHistory holidayHistory) {
+        setUp();
         this.holidayRepository.save(holidayHistory);
-        model.addAttribute("test",this.holidayRepository.findAll());
-        return "Display";
+        return this.holidayRepository.findAll();
     }
 
 }

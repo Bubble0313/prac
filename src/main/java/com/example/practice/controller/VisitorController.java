@@ -13,7 +13,7 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("/HolidayHistory")
 public class VisitorController {
 
@@ -23,7 +23,7 @@ public class VisitorController {
     @Autowired
     VisitorRepository visitorRepository;
 
-    public void setup() {
+    public void setUp() {
         Visitor visitor1 = new Visitor(1, "Amy","Zhang");
         visitorRepository.save(visitor1);
         Visitor visitor2 = new Visitor(2, "Emma","Rela");
@@ -55,18 +55,22 @@ public class VisitorController {
     }
 
     @GetMapping("/{historyId}")
-    public String findAllFromHistory(@PathVariable Integer historyId, Model model) {
-        setup();
+    public Iterable<Visitor> findAllFromHistory(@PathVariable Integer historyId) {
+        setUp();
         List<Visitor> v1= holidayRepository.findById(historyId).get().getVisitorList();
-        model.addAttribute("test",v1);
-        return "Display";
+        return v1;
     }
 
     @PostMapping("/{historyId}")
-    public String SaveintoVisitor(@PathVariable Integer historyId , @Valid @RequestBody Visitor visitor, Model model) {
-        setup();
+    public HolidayHistory saveIntoVisitor(@PathVariable Integer historyId , @Valid @RequestBody Visitor visitor) {
+        setUp();
         this.visitorRepository.save(visitor);
-        model.addAttribute("test",this.holidayRepository.findAll());
-        return "Display";
+        this.holidayRepository.findById(historyId).map(holidayHistory -> {
+            List<Visitor> l = holidayHistory.getVisitorList();
+            l.add(visitor);
+            holidayHistory.setVisitorList(l);
+            return this.holidayRepository.save(holidayHistory);
+        });
+        return this.holidayRepository.findById(historyId).get();
     }
 }

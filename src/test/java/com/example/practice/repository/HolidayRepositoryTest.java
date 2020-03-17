@@ -27,7 +27,7 @@ class HolidayRepositoryTest {
         visitorRepository.save(visitor1);
         Visitor visitor2 = new Visitor(2, "Emma","Rela");
         visitorRepository.save(visitor2);
-        List<Visitor> list = new ArrayList<Visitor>();
+        List<Visitor> list = new ArrayList<>();
         list.add(visitor1);
         list.add(visitor2);
         HolidayHistory holidayHistory = new HolidayHistory(1, "Shenyang", "03132020", list);
