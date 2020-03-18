@@ -1,69 +1,106 @@
 package com.example.practice.controller;
 
+import com.example.practice.PracticeApplication;
 import com.example.practice.model.HolidayHistory;
 import com.example.practice.model.Visitor;
 import com.example.practice.repository.HolidayRepository;
-import com.example.practice.repository.VisitorRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+//@RunWith(SpringRunner.class)
+//@SpringBootTest(classes = PracticeApplication.class)
+//class HolidayControllerTest {
+//    @Autowired
+//    private HolidayRepository holidayRepository;
+//    @Autowired
+//    private HolidayController holidayController = new HolidayController();
+//
+//    @Test
+//    public void testNotNull(){
+//        Assertions.assertThat(this.holidayController).isNotNull();
+//    }
+//
+//    @Test
+//    public void testSave(){
+//        HolidayHistory holidayHistory1 = new HolidayHistory(1, "13032020", "Shenyang", Collections.emptyList());
+//        Assertions.assertThat(this.holidayController.saveHistory(holidayHistory1).getBody()).isNotNull().isNotEmpty().hasSize(1);
+//    }
+//}
+
+
+
 
 @RunWith(MockitoJUnitRunner.class)
 class HolidayControllerTest {
 
     @Mock
     private HolidayRepository holidayRepository;
-    @Mock
-    private VisitorRepository visitorRepository;
+
     @InjectMocks
     private HolidayController holidayController = new HolidayController();
 
     @BeforeEach
     public void setUp(){
-        Visitor visitor1 = new Visitor(1, "Amy","Zhang");
-        visitorRepository.save(visitor1);
-        Visitor visitor2 = new Visitor(2, "Emma","Rela");
-        visitorRepository.save(visitor2);
-        Visitor visitor3 = new Visitor(3, "Anna","Marie");
-        visitorRepository.save(visitor3);
-        Visitor visitor4 = new Visitor(4, "Steve","Cousins");
-        visitorRepository.save(visitor4);
-        Visitor visitor5 = new Visitor(5, "Lily","Wang");
-        visitorRepository.save(visitor5);
-        Visitor visitor6 = new Visitor(6, "Rose","Tung");
-        visitorRepository.save(visitor6);
-
-        List<Visitor> list1 = new ArrayList<>();
-        list1.add(visitor1);
-        list1.add(visitor2);
-        HolidayHistory holidayHistory1 = new HolidayHistory(1, "13032020", "Shenyang", list1);
-        this.holidayRepository.save(holidayHistory1);
-        List<Visitor> list2 = new ArrayList<>();
-        list2.add(visitor3);
-        HolidayHistory holidayHistory2 = new HolidayHistory(2, "12102019", "London", list2);
-        this.holidayRepository.save(holidayHistory2);
-        List<Visitor> list3 = new ArrayList<>();
-        list3.add(visitor4);
-        list3.add(visitor5);
-        list3.add(visitor6);
-        HolidayHistory holidayHistory3 = new HolidayHistory(3, "13042018", "Birmingham", list3);
-        this.holidayRepository.save(holidayHistory3);
-
+        MockitoAnnotations.initMocks(this);
     }
 
     @Test
     public void testNotNull(){
         Assertions.assertThat(this.holidayController).isNotNull();
     }
+
+    @Test
+    public void testFindAll(){
+        HolidayHistory holidayHistory1 = new HolidayHistory(1, "13032020", "Shenyang", Collections.emptyList());
+        when(holidayRepository.findAll()).thenReturn(Collections.singletonList(holidayHistory1));
+        ResponseEntity<List<HolidayHistory>> allFromHistory = holidayController.findAllHistory();
+        Assertions.assertThat(allFromHistory.getBody()).isNotNull().isNotEmpty().hasSize(1);
+        Assertions.assertThat(allFromHistory.getBody()).isNotNull().isNotEmpty().hasSize(1).isEqualTo(Collections.singletonList(holidayHistory1));
+        Mockito.verify(this.holidayRepository).findAll();
+    }
+
+    @Test
+    public void testFindNull(){
+        when(holidayRepository.findAll()).thenReturn(Collections.emptyList());
+        ResponseEntity<List<HolidayHistory>> allHistory = holidayController.findAllHistory();
+        Assertions.assertThat(allHistory.getBody()).isNotNull().isEmpty();
+        Mockito.verify(this.holidayRepository).findAll();
+    }
+
+    @Test
+    public void testSaveSuccess(){
+        HolidayHistory holidayHistory1 = new HolidayHistory(1, "13032020", "Shenyang", Collections.emptyList());
+        when(holidayRepository.save(any(HolidayHistory.class))).thenReturn(holidayHistory1);
+        ResponseEntity<String> message = holidayController.saveHistory(holidayHistory1);
+        Assertions.assertThat(message.getBody()).isNotNull().isEqualTo("Successfully saved holiday history!");
+    }
+
+    @Test
+    public void testSaveFailure(){
+        HolidayHistory holidayHistory = new HolidayHistory();
+        when(holidayRepository.save(any(HolidayHistory.class))).thenReturn(holidayHistory);
+        ResponseEntity<String> message = holidayController.saveHistory(holidayHistory);
+        Assertions.assertThat(message.getBody()).isNotNull().isEqualTo("Successfully saved holiday history!");
+    }
+
 }

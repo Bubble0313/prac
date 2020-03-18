@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
 public class Visitor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Integer vid;
     @NotNull
     private String firstName;
     @NotNull
