@@ -15,9 +15,9 @@ public class Visitor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer vid;
-    @NotNull
+    @NotNull(message = "must have value")
     private String firstName;
-    @NotNull
+    @NotNull(message = "must have value")
     private String lastName;
 
 }

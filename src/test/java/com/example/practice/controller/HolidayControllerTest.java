@@ -17,10 +17,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -70,37 +72,59 @@ class HolidayControllerTest {
     }
 
     @Test
-    public void testFindAll(){
+    public void testFindAllHistoryNotNull(){
         HolidayHistory holidayHistory1 = new HolidayHistory(1, "13032020", "Shenyang", Collections.emptyList());
         when(holidayRepository.findAll()).thenReturn(Collections.singletonList(holidayHistory1));
         ResponseEntity<List<HolidayHistory>> allFromHistory = holidayController.findAllHistory();
-        Assertions.assertThat(allFromHistory.getBody()).isNotNull().isNotEmpty().hasSize(1);
         Assertions.assertThat(allFromHistory.getBody()).isNotNull().isNotEmpty().hasSize(1).isEqualTo(Collections.singletonList(holidayHistory1));
-        Mockito.verify(this.holidayRepository).findAll();
     }
 
     @Test
-    public void testFindNull(){
+    public void testFindAllHistoryNull(){
         when(holidayRepository.findAll()).thenReturn(Collections.emptyList());
         ResponseEntity<List<HolidayHistory>> allHistory = holidayController.findAllHistory();
         Assertions.assertThat(allHistory.getBody()).isNotNull().isEmpty();
-        Mockito.verify(this.holidayRepository).findAll();
     }
 
     @Test
-    public void testSaveSuccess(){
+    public void testSaveHistoryNotNull(){
         HolidayHistory holidayHistory1 = new HolidayHistory(1, "13032020", "Shenyang", Collections.emptyList());
-        when(holidayRepository.save(any(HolidayHistory.class))).thenReturn(holidayHistory1);
+        //when(holidayRepository.save(any(HolidayHistory.class))).thenReturn(holidayHistory1);
         ResponseEntity<String> message = holidayController.saveHistory(holidayHistory1);
         Assertions.assertThat(message.getBody()).isNotNull().isEqualTo("Successfully saved holiday history!");
     }
 
     @Test
-    public void testSaveFailure(){
-        HolidayHistory holidayHistory = new HolidayHistory();
-        when(holidayRepository.save(any(HolidayHistory.class))).thenReturn(holidayHistory);
+    public void testSaveHistoryWithNull(){
+        HolidayHistory holidayHistory = new HolidayHistory(null, null, null, null);
+        //HolidayHistory holidayHistory1 = null;
+        //when(holidayRepository.save(any(HolidayHistory.class))).thenReturn(holidayHistory);
+        when(holidayRepository.save(holidayHistory)).thenThrow(new IllegalArgumentException());
         ResponseEntity<String> message = holidayController.saveHistory(holidayHistory);
-        Assertions.assertThat(message.getBody()).isNotNull().isEqualTo("Successfully saved holiday history!");
+        Assertions.assertThat(message.getBody()).isNotNull().isEqualTo("Not valid input");
     }
+
+    @Test
+    public void testFindAllVisitorByValidHistoryId(){
+        Visitor visitor1 = new Visitor(1, "Amy","Zhang");
+        List<Visitor> list1 = new ArrayList<>();
+        list1.add(visitor1);
+        HolidayHistory holidayHistory1 = new HolidayHistory(1, "13032020", "Shenyang", list1);
+        when(holidayRepository.findById(1)).thenReturn(Optional.of(holidayHistory1));
+        ResponseEntity<List<Visitor>> all = holidayController.findAllVisitorByHistoryId(1);
+        Assertions.assertThat(all.getBody()).isNotNull().isNotEmpty().hasSize(1).isEqualTo(holidayHistory1.getVisitorList());
+    }
+
+    @Test
+    public void testFindAllVisitorByInvalidHistoryId(){
+        Visitor visitor1 = new Visitor(1, "Amy","Zhang");
+        List<Visitor> list1 = new ArrayList<>();
+        list1.add(visitor1);
+        HolidayHistory holidayHistory1 = new HolidayHistory(1, "13032020", "Shenyang", list1);
+        when(holidayRepository.findById(2)).thenThrow(new NullPointerException("No such history"));
+       // ResponseEntity<List<Visitor>> all = holidayController.findAllVisitorByHistoryId(2);
+        Assertions.assertThatNullPointerException().isThrownBy(()->holidayController.findAllVisitorByHistoryId(2));
+    }
+
 
 }

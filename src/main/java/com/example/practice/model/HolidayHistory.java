@@ -18,9 +18,9 @@ public class HolidayHistory{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @NotNull
+    @NotNull(message = "must have value")
     private String date;
-    @NotNull
+    @NotNull(message = "must have value")
     private String destination;
 
     @OneToMany(targetEntity = Visitor.class, cascade = CascadeType.ALL)
