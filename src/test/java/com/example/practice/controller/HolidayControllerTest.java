@@ -104,16 +104,16 @@ class HolidayControllerTest {
         Assertions.assertThat(message.getBody()).isNotNull().isEqualTo("Not valid input");
     }
 
-    @Test
-    public void testFindAllVisitorByValidHistoryId(){
-        Visitor visitor1 = new Visitor(1, "Amy","Zhang");
-        List<Visitor> list1 = new ArrayList<>();
-        list1.add(visitor1);
-        HolidayHistory holidayHistory1 = new HolidayHistory(1, "13032020", "Shenyang", list1);
-        when(holidayRepository.findById(1)).thenReturn(Optional.of(holidayHistory1));
-        ResponseEntity<List<Visitor>> all = holidayController.findAllVisitorByHistoryId(1);
-        Assertions.assertThat(all.getBody()).isNotNull().isNotEmpty().hasSize(1).isEqualTo(holidayHistory1.getVisitorList());
-    }
+//    @Test
+//    public void testFindAllVisitorByValidHistoryId(){
+//        Visitor visitor1 = new Visitor(1, "Amy","Zhang");
+//        List<Visitor> list1 = new ArrayList<>();
+//        list1.add(visitor1);
+//        HolidayHistory holidayHistory1 = new HolidayHistory(1, "13032020", "Shenyang", list1);
+//        when(holidayRepository.findById(1)).thenReturn(Optional.of(holidayHistory1));
+//        ResponseEntity<List<Visitor>> all = holidayController.findAllVisitorByHistoryId(1);
+//        Assertions.assertThat(all.getBody()).isNotNull().isNotEmpty().hasSize(1).isEqualTo(holidayHistory1.getVisitorList());
+//    }
 
     @Test
     public void testFindAllVisitorByInvalidHistoryId(){
