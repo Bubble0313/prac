@@ -3,78 +3,92 @@ package com.example.practice.controller;
 import com.example.practice.model.HolidayHistory;
 import com.example.practice.model.Visitor;
 import com.example.practice.repository.HolidayRepository;
-import com.example.practice.repository.VisitorRepository;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
-@Controller
+@RestController
 public class HolidayController {
 
     @Autowired
-    HolidayRepository holidayRepository;
+    private HolidayRepository holidayRepository;
 
-    @Autowired
-    VisitorRepository visitorRepository;
+    //first level
 
-    public void setup() {
-        Visitor visitor1 = new Visitor(1, "Amy","Zhang");
-        visitorRepository.save(visitor1);
-        Visitor visitor2 = new Visitor(2, "Emma","Rela");
-        visitorRepository.save(visitor2);
-        Visitor visitor3 = new Visitor(3, "Anna","Marie");
-        visitorRepository.save(visitor3);
-        Visitor visitor4 = new Visitor(4, "Steve","Cousins");
-        visitorRepository.save(visitor4);
-        Visitor visitor5 = new Visitor(5, "Lily","Wang");
-        visitorRepository.save(visitor5);
-        Visitor visitor6 = new Visitor(6, "Rose","Tung");
-        visitorRepository.save(visitor6);
-
-        List<Visitor> list1 = new ArrayList<>();
-        list1.add(visitor1);
-        list1.add(visitor2);
-        HolidayHistory holidayHistory1 = new HolidayHistory(1, "13032020", "Shenyang", list1);
-        this.holidayRepository.save(holidayHistory1);
-        List<Visitor> list2 = new ArrayList<>();
-        list2.add(visitor3);
-        HolidayHistory holidayHistory2 = new HolidayHistory(2, "12102019", "London", list2);
-        this.holidayRepository.save(holidayHistory2);
-        List<Visitor> list3 = new ArrayList<>();
-        list3.add(visitor4);
-        list3.add(visitor5);
-        list3.add(visitor6);
-        HolidayHistory holidayHistory3 = new HolidayHistory(3, "13042018", "Birmingham", list3);
-        this.holidayRepository.save(holidayHistory3);
-    }
-
-    @GetMapping("/HolidayHistory")
-    public String findAllFromHistory( Model model) {
-        setup();
-        Iterable<HolidayHistory> h1 = holidayRepository.findAll();
-        model.addAttribute("test",h1);
-        return "Display";
-    }
-
-//    @GetMapping("/HolidayHistory/{historyId}")
-//    public String findFromHistory(@PathVariable Integer historyId, Model model) {
-//        setup();
-//        Optional<HolidayHistory> h1 = holidayRepository.findById(historyId);
-//        model.addAttribute("test",h1.get());
-//        return "Display";
-//    }
-
-    @PostMapping("/HolidayHistory")
-    public String saveIntoHistory(@Valid @RequestBody HolidayHistory holidayHistory, Model model) {
-        setup();
+    @PostMapping("/holidayhistory")
+    public ResponseEntity<String> saveHistory(@Valid @RequestBody HolidayHistory holidayHistory) {
+        try{
         this.holidayRepository.save(holidayHistory);
-        model.addAttribute("test",this.holidayRepository.findAll());
-        return "Display";
+        return new ResponseEntity<>("Successfully saved holiday history!", HttpStatus.OK);}
+        catch (Exception e)
+        {
+            return new ResponseEntity<>("Not valid input!", HttpStatus.BAD_REQUEST);
+        }
     }
 
+    @GetMapping("/holidayhistory")
+    public ResponseEntity<List<HolidayHistory>> findAllHistory() {
+        List<HolidayHistory> holidayHistoryList = Lists.newArrayList(this.holidayRepository.findAll());
+        return new ResponseEntity<>(holidayHistoryList, HttpStatus.OK);
+    }
+
+    @GetMapping("/holidayhistory/{historyId}")
+    public ResponseEntity<HolidayHistory> findHistoryById(@PathVariable Integer historyId) {
+        if (historyId <= Lists.newArrayList(this.holidayRepository.findAll()).size()){
+            HolidayHistory holidayHistory= this.holidayRepository.findById(historyId).get();
+            return new ResponseEntity<>(holidayHistory, HttpStatus.OK);}
+        else {
+            throw new NullPointerException("No such history!");
+        }
+    }
+
+    //second level
+
+    @PostMapping("/holidayhistory/{historyId}/visitor")
+    public ResponseEntity<String> saveVisitorByHistoryId(@PathVariable Integer historyId , @Valid @RequestBody Visitor visitor) {
+        try{
+        this.holidayRepository.findById(historyId).map(holidayHistory -> {
+            List<Visitor> l = holidayHistory.getVisitorList();
+            l.add(visitor);
+            holidayHistory.setVisitorList(l);
+            return this.holidayRepository.save(holidayHistory);
+        });
+        return new ResponseEntity<>("Successfully saved the visitor!", HttpStatus.OK);}
+        catch(Exception e)
+        {
+            return new ResponseEntity<>("Not valid input!", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/holidayhistory/{historyId}/visitor")
+    public ResponseEntity<List<Visitor>> findAllVisitorByHistoryId(@PathVariable Integer historyId) {
+        if (historyId <= Lists.newArrayList(this.holidayRepository.findAll()).size()){
+            List<Visitor> visitorList= this.holidayRepository.findById(historyId).get().getVisitorList();
+            return new ResponseEntity<>(visitorList, HttpStatus.OK);}
+        else {
+            throw new NullPointerException("No such history!");
+        }
+    }
+
+    @GetMapping("/holidayhistory/{historyId}/visitor/{order}")
+    public ResponseEntity<Visitor> findVisitorByHistoryIdAndOrder(@PathVariable Integer historyId, @PathVariable Integer order) {
+        if (historyId <= Lists.newArrayList(this.holidayRepository.findAll()).size()){
+            List<Visitor> list = this.holidayRepository.findById(historyId).get().getVisitorList();
+            if(order <= list.size()){
+                Visitor visitor = list.get(order-1);
+                return new ResponseEntity<>(visitor, HttpStatus.OK);
+            }
+            else{
+                throw new NullPointerException("No such visitors!");
+            }
+        }
+        else{
+            throw new NullPointerException("No such history!");
+        }
+    }
 }
